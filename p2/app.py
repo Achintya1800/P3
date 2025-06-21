@@ -14,35 +14,21 @@ class Generator(nn.Module):
     def __init__(self, latent_dim, img_shape):
         super(Generator, self).__init__()
         self.img_shape = img_shape
-        self.latent_dim = latent_dim
         self.label_emb = nn.Embedding(10, 10)
 
-        self.conv_blocks = nn.Sequential(
-            nn.ConvTranspose2d(latent_dim + 10, 128, kernel_size=3, stride=2),
-            nn.BatchNorm2d(128),
+        self.model = nn.Sequential(
+            nn.Linear(latent_dim + 10, 256),
             nn.ReLU(True),
-
-            nn.ConvTranspose2d(128, 64, kernel_size=4, stride=1),
-            nn.BatchNorm2d(64),
+            nn.Linear(256, 512),
             nn.ReLU(True),
-
-            nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2),
-            nn.BatchNorm2d(32),
-            nn.ReLU(True),
-
-            nn.ConvTranspose2d(32, 1, kernel_size=4, stride=2, output_padding=1),
+            nn.Linear(512, 784),
             nn.Tanh()
         )
 
-        self.fc = nn.Linear(latent_dim + 10, (latent_dim + 10) * 1 * 1)
-
     def forward(self, noise, labels):
-        label_embedding = self.label_emb(labels)
-        gen_input = torch.cat((label_embedding, noise), -1)
-
-        out = self.fc(gen_input)
-        out = out.view(out.size(0), self.latent_dim + 10, 1, 1)
-        img = self.conv_blocks(out)
+        gen_input = torch.cat((self.label_emb(labels), noise), -1)
+        img = self.model(gen_input)
+        img = img.view(img.size(0), *self.img_shape)
         return img
 
 latent_dim = 64
@@ -53,7 +39,7 @@ device = torch.device('cpu')
 def load_model():
     generator = Generator(latent_dim, img_shape)
     try:
-        generator.load_state_dict(torch.load('generator.pth', map_location=device))
+        generator.load_state_dict(torch.load("generator.pth", map_location=device))
         generator.eval()
         return generator, True
     except Exception as e:
@@ -113,11 +99,8 @@ if generate_btn:
 
             if images:
                 st.success(f"✅ Generated 5 images of digit {digit}!")
-
-                # Display images
                 st.markdown(f"### 🖼️ Generated Images of Digit {digit}")
                 cols = st.columns(5)
-
                 for i, img in enumerate(images):
                     with cols[i]:
                         st.image(img, caption=f"Sample {i+1}", use_column_width=True)
@@ -133,7 +116,7 @@ with col_info1:
     st.markdown("""
     **Architecture:** Conditional GAN  
     **Dataset:** MNIST handwritten digits  
-    **Training:** ~15-20 minutes on T4 GPU  
+    **Training:** ~15 minutes on CPU or GPU  
     """)
 
 with col_info2:
@@ -143,7 +126,7 @@ with col_info2:
     **Display:** 112×112 pixels  
     """)
 
-# File uploader (alternative)
+# Model uploader
 st.markdown("---")
 st.markdown("### 📁 Upload Model (Alternative)")
 uploaded_file = st.file_uploader("Upload generator.pth if not found", type=['pth'])
