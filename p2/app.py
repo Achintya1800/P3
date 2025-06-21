@@ -1,3 +1,5 @@
+
+
 # import streamlit as st
 # import torch
 # import torch.nn as nn
@@ -5,6 +7,9 @@
 # from PIL import Image
 # import io
 # import base64
+# import os
+# import sys
+# from streamlit.web import cli as stcli
 
 # st.set_page_config(page_title="Digit Generator", layout="wide")
 
@@ -137,6 +142,17 @@
 #     st.success("✅ Model uploaded! Please refresh the page.")
 #     st.rerun()
 
+# # Run Streamlit using the correct port
+# if __name__ == "__main__":
+#     port = int(os.environ.get("PORT", 8501))
+#     sys.argv = ["streamlit", "run", "app.py", "--server.port", str(port), "--server.address", "0.0.0.0"]
+#     sys.exit(stcli.main())
+
+
+import os
+os.environ["STREAMLIT_SERVER_PORT"] = os.environ.get("PORT", "8501")
+os.environ["STREAMLIT_SERVER_ADDRESS"] = "0.0.0.0"
+
 import streamlit as st
 import torch
 import torch.nn as nn
@@ -144,9 +160,6 @@ import numpy as np
 from PIL import Image
 import io
 import base64
-import os
-import sys
-from streamlit.web import cli as stcli
 
 st.set_page_config(page_title="Digit Generator", layout="wide")
 
@@ -183,6 +196,7 @@ def load_model():
         generator.eval()
         return generator, True
     except Exception as e:
+        st.error(f"❌ Model load failed: {e}")
         return None, False
 
 def generate_digit_images(generator, digit):
@@ -278,9 +292,3 @@ if uploaded_file is not None:
         f.write(uploaded_file.getbuffer())
     st.success("✅ Model uploaded! Please refresh the page.")
     st.rerun()
-
-# Run Streamlit using the correct port
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8501))
-    sys.argv = ["streamlit", "run", "app.py", "--server.port", str(port), "--server.address", "0.0.0.0"]
-    sys.exit(stcli.main())
