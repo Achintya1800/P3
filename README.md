@@ -54,16 +54,13 @@ lr = 0.0002
 2. Connect to Render
 3. Deploy as Web Service
 
-### Streamlit Cloud
-1. Push to GitHub
-2. Deploy at [share.streamlit.io](https://share.streamlit.io)
 
 ## Tech Stack
 
 - **Frontend**: Streamlit
 - **Backend**: PyTorch
 - **Model**: Conditional GAN
-- **Deployment**: Render/Streamlit Cloud
+- **Deployment**: Render
 
 ## Results
 
